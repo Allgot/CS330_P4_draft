@@ -6,27 +6,72 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/cameraFragmentContainerView"
-        android:name="com.example.pj4test.fragment.CameraFragment"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+    <TextView
+        android:id="@+id/textViewMain"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="60dp"
+        android:text="@string/main_text"
+        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+        android:textSize="25sp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/audioFragmentContainerView"
-        tools:layout="@layout/fragment_camera" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/audioFragmentContainerView"
-        android:name="com.example.pj4test.fragment.AudioFragment"
+        android:id="@+id/IMUContainerView"
+        android:name="com.team50.carcrashdetector.IMUFragment"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cameraFragmentContainerView"
-        tools:layout="@layout/fragment_audio" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewMain"
+        tools:layout="@layout/fragment_imu" />
 
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/MicContainerView"
+        android:name="com.team50.carcrashdetector.MicFragment"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/IMUContainerView"
+        tools:layout="@layout/fragment_mic" />
+
+    <!-- DBG: BEGIN -->
+
+    <Button
+        android:id="@+id/buttonImuOn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/imuOn"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/buttonMicOn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/micOn"
+        app:layout_constraintEnd_toStartOf="@+id/buttonCallEme"
+        app:layout_constraintStart_toEndOf="@+id/buttonImuOn"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/buttonCallEme"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/callEme"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- DBG: END -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
