@@ -47,7 +47,7 @@ public class IMUFragment extends Fragment implements CrashIMUClassifier.Detector
         // Assign classifier:
         crashIMUClassifier = new CrashIMUClassifier();
         // Initialize classifier:
-        crashIMUClassifier.initialize(getContext());
+        crashIMUClassifier.initialize(getContext(),100, 2);
         // Initialize classifier:
         crashIMUClassifier.setDetectorListener(this);
     }

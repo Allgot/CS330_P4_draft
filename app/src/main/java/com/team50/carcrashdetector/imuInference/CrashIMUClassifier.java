@@ -27,8 +27,14 @@ public class CrashIMUClassifier {
     private AccSensorEventListener accListener;
     private GyrSensorEventListener gyrListener;
 
-    public void initialize(Context context) {
+    private float accThreshold;
+    private float gyrThreshold;
+
+    public void initialize(Context context, float accThreshold, float gyrThreshold) {
         try {
+            this.accThreshold = accThreshold;
+            this.gyrThreshold = gyrThreshold;
+
             classifier = Imumodel.newInstance(context);
             imuInitialize(context);
             startRecording();
@@ -47,7 +53,7 @@ public class CrashIMUClassifier {
     }
 
     static class AccSensorEventListener implements SensorEventListener {
-        float[][] window = new float[33][3]; // 야매긴함;
+        float[][] window = new float[33][3];
 
         public AccSensorEventListener() {
             float[] initializer = {0.0f, 0.0f, 0.0f};
@@ -61,8 +67,7 @@ public class CrashIMUClassifier {
             float accZ = event.values[2];
             float[] window_item = {accX, accY, accZ};
 
-            window = Arrays.copyOfRange(window, 1, 33);
-            window = Arrays.copyOf(window, 33);
+            window = Arrays.copyOf(Arrays.copyOfRange(window, 1, 33), 33) ;
             window[32] = window_item;
         }
 
@@ -85,8 +90,7 @@ public class CrashIMUClassifier {
             float gyrZ = event.values[2];
             float[] window_item = {gyrX, gyrY, gyrZ};
 
-            window = Arrays.copyOfRange(window, 1, 33);
-            window = Arrays.copyOf(window, 33);
+            window = Arrays.copyOf(Arrays.copyOfRange(window, 1, 33), 33);
             window[32] = window_item;
         }
 
@@ -106,26 +110,44 @@ public class CrashIMUClassifier {
         recorder.unregisterListener(gyrListener);
     }
 
+    private float calculateAverage(float[][] window) {
+        float sum = 0;
+
+        for (float[] floats : window) {
+            sum = sum + (float) (Math.pow(floats[0], 2) + Math.pow(floats[1], 2) + Math.pow(floats[2], 2));
+        }
+
+        return (float) (sum / window.length);
+    }
+
     public boolean inference() {
-        TensorBuffer input = TensorBuffer.createFixedSize(new int[]{1, 33, 6}, DataType.FLOAT32);
-        float[][] concat = new float[33][6];
-        float[] flattenedConcat = new float[33 * 6];
+        float accCur = calculateAverage(Arrays.copyOfRange(this.accListener.window, 32, 33));
+        float gyrCur = calculateAverage(Arrays.copyOfRange(this.gyrListener.window, 32, 33));
 
-        for (int i = 0; i < 33; i++) {
-            System.arraycopy(this.accListener.window[i], 0, concat[i], 0, 3);
-            System.arraycopy(this.gyrListener.window[i], 0, concat[i], 3, 3);
+        // Log.d("CrashIMUClassifier", String.format("%f", accCur) + ", " + String.format("%f", gyrCur));
+
+        if (accCur >= accThreshold && gyrCur >= gyrThreshold) {
+            TensorBuffer input = TensorBuffer.createFixedSize(new int[]{1, 33, 6}, DataType.FLOAT32);
+            float[][] concat = new float[33][6];
+            float[] flattenedConcat = new float[33 * 6];
+
+            for (int i = 0; i < 33; i++) {
+                System.arraycopy(this.accListener.window[i], 0, concat[i], 0, 3);
+                System.arraycopy(this.gyrListener.window[i], 0, concat[i], 3, 3);
+            }
+
+            for (int i = 0; i < 33; i++) {
+                System.arraycopy(concat[i], 0, flattenedConcat, 6 * i, 6);
+            }
+
+            input.loadArray(flattenedConcat);
+            TensorBuffer outputs = classifier.process(input).getOutputFeature0AsTensorBuffer();
+            float[] scores = outputs.getFloatArray();
+
+            // 0 - Not crash; 1 - Crash
+            return scores[1] > 0.5;
         }
-
-        for (int i = 0; i < 33; i++) {
-            System.arraycopy(concat[i], 0, flattenedConcat, 6 * i, 6);
-        }
-
-        input.loadArray(flattenedConcat);
-        TensorBuffer outputs = classifier.process(input).getOutputFeature0AsTensorBuffer();
-        float[] scores = outputs.getFloatArray();
-
-        // 0 - Not crash; 1 - Crash
-        return scores[1] > 0.5;
+        return false;
     }
 
     public void startInferencing() {

@@ -47,31 +47,6 @@
 
     <!-- DBG: BEGIN -->
 
-    <Button
-        android:id="@+id/buttonImuOn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/imuOn"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/buttonMicOn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/micOn"
-        app:layout_constraintEnd_toStartOf="@+id/buttonCallEme"
-        app:layout_constraintStart_toEndOf="@+id/buttonImuOn"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/buttonCallEme"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/callEme"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <!-- DBG: END -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

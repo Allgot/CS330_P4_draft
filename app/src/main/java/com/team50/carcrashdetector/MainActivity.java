@@ -17,26 +17,10 @@ import android.widget.Button;
 public class MainActivity extends AppCompatActivity {
     FragmentContainerView imuContainerView, micContainerView;
 
-    // DBG: BEGIN
-    Button buttonImuOn, buttonMicOn, buttonCallEme;
-    // DBG: END
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        // DBG: BEGIN
-        buttonImuOn = findViewById(R.id.buttonImuOn);
-        buttonMicOn = findViewById(R.id.buttonMicOn);
-        buttonCallEme = findViewById(R.id.buttonCallEme);
-
-        buttonImuOn.setOnClickListener(view -> imuOn());
-
-        buttonMicOn.setOnClickListener(view -> micOn());
-
-        buttonCallEme.setOnClickListener(view -> callEme());
-        // DBG: END
 
         imuContainerView = findViewById(R.id.IMUContainerView);
         micContainerView = findViewById(R.id.MicContainerView);
