@@ -7,11 +7,14 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.util.Log;
 
+import com.opencsv.CSVWriter;
 import com.team50.carcrashdetector.ml.Imumodel;
 
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Timer;
@@ -44,16 +47,20 @@ public class CrashIMUClassifier {
         }
     }
 
+    protected File mFileDir;
+
     private void imuInitialize(Context context) {
         this.recorder = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         this.accSensor = recorder.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         this.accListener = new AccSensorEventListener();
         this.gyrSensor = recorder.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         this.gyrListener = new GyrSensorEventListener();
+
+        mFileDir = context.getExternalFilesDir(null);
     }
 
     static class AccSensorEventListener implements SensorEventListener {
-        float[][] window = new float[33][3];
+        float[][] window = new float[30][3];
 
         public AccSensorEventListener() {
             float[] initializer = {0.0f, 0.0f, 0.0f};
@@ -67,8 +74,8 @@ public class CrashIMUClassifier {
             float accZ = event.values[2];
             float[] window_item = {accX, accY, accZ};
 
-            window = Arrays.copyOf(Arrays.copyOfRange(window, 1, 33), 33) ;
-            window[32] = window_item;
+            window = Arrays.copyOf(Arrays.copyOfRange(window, 1, 30), 30) ;
+            window[29] = window_item;
         }
 
         @Override
@@ -76,7 +83,7 @@ public class CrashIMUClassifier {
     }
 
     static class GyrSensorEventListener implements SensorEventListener {
-        float[][] window = new float[33][3];
+        float[][] window = new float[30][3];
 
         public GyrSensorEventListener() {
             float[] initializer = {0.0f, 0.0f, 0.0f};
@@ -90,8 +97,8 @@ public class CrashIMUClassifier {
             float gyrZ = event.values[2];
             float[] window_item = {gyrX, gyrY, gyrZ};
 
-            window = Arrays.copyOf(Arrays.copyOfRange(window, 1, 33), 33);
-            window[32] = window_item;
+            window = Arrays.copyOf(Arrays.copyOfRange(window, 1, 30), 30);
+            window[29] = window_item;
         }
 
         @Override
@@ -120,23 +127,56 @@ public class CrashIMUClassifier {
         return (float) (sum / window.length);
     }
 
+    public void saveCSV() {
+        if (mCSVWriter != null) {
+            try {
+                mCSVWriter.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private CSVWriter mCSVWriter;
+
     public boolean inference() {
-        float accCur = calculateAverage(Arrays.copyOfRange(this.accListener.window, 32, 33));
-        float gyrCur = calculateAverage(Arrays.copyOfRange(this.gyrListener.window, 32, 33));
+        float accCur = calculateAverage(Arrays.copyOfRange(this.accListener.window, 29, 30));
+        float gyrCur = calculateAverage(Arrays.copyOfRange(this.gyrListener.window, 29, 30));
+
+        /*
+        if (mCSVWriter == null && mFileDir != null) {
+            String fileName = "test.csv";
+
+            try {
+                Log.e("CrashIMUClassifier", mFileDir.toString());
+                mCSVWriter = new CSVWriter(new FileWriter(new File(mFileDir, fileName), true));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (mCSVWriter != null) {
+            String[] csvData = {String.format("%d", System.currentTimeMillis()) , String.format("%f", this.accListener.window[32][0]), String.format("%f", this.accListener.window[32][1]), String.format("%f", this.accListener.window[32][2]),
+                    String.format("%f", this.gyrListener.window[32][0]), String.format("%f", this.gyrListener.window[32][1]), String.format("%f", this.gyrListener.window[32][2])};
+            mCSVWriter.writeNext(csvData);
+
+            Log.d("CrashIMUClassifier", "Collecting...");
+        }
+         */
 
         // Log.d("CrashIMUClassifier", String.format("%f", accCur) + ", " + String.format("%f", gyrCur));
 
         if (accCur >= accThreshold && gyrCur >= gyrThreshold) {
-            TensorBuffer input = TensorBuffer.createFixedSize(new int[]{1, 33, 6}, DataType.FLOAT32);
-            float[][] concat = new float[33][6];
-            float[] flattenedConcat = new float[33 * 6];
+            TensorBuffer input = TensorBuffer.createFixedSize(new int[]{1, 30, 6}, DataType.FLOAT32);
+            float[][] concat = new float[30][6];
+            float[] flattenedConcat = new float[30 * 6];
 
-            for (int i = 0; i < 33; i++) {
+            for (int i = 0; i < 30; i++) {
                 System.arraycopy(this.accListener.window[i], 0, concat[i], 0, 3);
                 System.arraycopy(this.gyrListener.window[i], 0, concat[i], 3, 3);
             }
 
-            for (int i = 0; i < 33; i++) {
+            for (int i = 0; i < 30; i++) {
                 System.arraycopy(concat[i], 0, flattenedConcat, 6 * i, 6);
             }
 
@@ -145,7 +185,7 @@ public class CrashIMUClassifier {
             float[] scores = outputs.getFloatArray();
 
             // 0 - Not crash; 1 - Crash
-            return scores[1] > 0.5;
+            return scores[0] > 0.5;
         }
         return false;
     }

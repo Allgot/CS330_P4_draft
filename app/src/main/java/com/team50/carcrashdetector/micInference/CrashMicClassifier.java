@@ -55,7 +55,7 @@ public class CrashMicClassifier {
         Log.d("CrashMicClassifier", "categories: " + output.get(0).getCategories().toString());
 
         return output.get(0).getCategories().stream().anyMatch(
-                (Category category) -> category.getLabel().equals("Speech") && category.getScore() > 0.5
+                (Category category) -> category.getLabel().equals("Speech") && category.getScore() > 0.1
         );
     }
 

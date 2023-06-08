@@ -47,7 +47,7 @@ public class IMUFragment extends Fragment implements CrashIMUClassifier.Detector
         // Assign classifier:
         crashIMUClassifier = new CrashIMUClassifier();
         // Initialize classifier:
-        crashIMUClassifier.initialize(getContext(),100, 2);
+        crashIMUClassifier.initialize(getContext(),150, 10);
         // Initialize classifier:
         crashIMUClassifier.setDetectorListener(this);
     }
@@ -75,8 +75,17 @@ public class IMUFragment extends Fragment implements CrashIMUClassifier.Detector
     @Override
     public void onDestroy() {
         super.onDestroy();
+        crashIMUClassifier.saveCSV();
 
         Log.d("IMUFragment", "Destroyed!");
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        crashIMUClassifier.saveCSV();
+
+        Log.d("IMUFragment", "Stopped!");
     }
 
     @Override
