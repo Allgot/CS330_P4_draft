@@ -52,8 +52,10 @@ public class CrashMicClassifier {
         tensor.load(recorder);
         List<Classifications> output = classifier.classify(tensor);
 
+        Log.d("CrashMicClassifier", "categories: " + output.get(0).getCategories().toString());
+
         return output.get(0).getCategories().stream().anyMatch(
-                (Category category) -> category.getLabel().equals("Whack") && category.getScore() > 0.5
+                (Category category) -> category.getLabel().equals("Speech") && category.getScore() > 0.5
         );
     }
 
@@ -67,7 +69,7 @@ public class CrashMicClassifier {
                 }
             };
 
-            timer.scheduleAtFixedRate(task, 0, 33L);
+            timer.scheduleAtFixedRate(task, 0, 5000L);
         }
     }
 

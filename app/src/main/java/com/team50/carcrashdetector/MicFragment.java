@@ -18,6 +18,7 @@ import com.team50.carcrashdetector.micInference.CrashMicClassifier;
 public class MicFragment extends Fragment implements CrashMicClassifier.DetectorListener {
     CrashMicClassifier crashMicClassifier;
     TextView textViewMicStatus;
+    long startingTime;
 
     public MicFragment() {
         // Required empty public constructor
@@ -42,6 +43,8 @@ public class MicFragment extends Fragment implements CrashMicClassifier.Detector
         super.onViewCreated(view, savedInstanceState);
 
         Log.d("MicFragment", "View created!");
+
+        startingTime = System.currentTimeMillis();
 
         textViewMicStatus = view.findViewById(R.id.textViewMicStatus);
         // Assign classifier:
@@ -95,7 +98,7 @@ public class MicFragment extends Fragment implements CrashMicClassifier.Detector
                         res.putInt("call_eme", 1);
                         getParentFragmentManager().setFragmentResult("mic", res);
                     }
-                } else {
+                } else if (System.currentTimeMillis() - startingTime > 10000) {
                     if (getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.RESUMED)) {
                         Log.d("MicFragment", "send call_imuOn msg to MainActivity");
                         // Invoke imuOn() method of MainActivity.
